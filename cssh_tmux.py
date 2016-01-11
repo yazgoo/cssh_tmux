@@ -1,38 +1,44 @@
 #!/usr/bin/env python
-import tmuxp, time, sys, readline
-def get_tmux_session():
-    return tmuxp.Server().list_sessions()[0]
-def get_free_window_name(session):
-    i = 0
-    tmux_window_name = None
-    while True:
-        tmux_window_name = 'cssh_tmux_' + str(i)
-        print(tmux_window_name)
-        try:
-            window = session.select_window(tmux_window_name)
-        except:
-            return tmux_window_name
-        i += 1
+import tmuxp, time, sys, readline, os, subprocess
 
-def start_main_shell(tmux_window_name):
+def get_tmux_session():
+    return tmuxp.Server().attached_sessions()[0]
+
+def start_main_shell():
     session = get_tmux_session()
-    window = session.select_window(tmux_window_name)
+    window = session.attached_window()
+    history_path = os.path.join(os.path.expanduser("~"), ".cssh_tmux.history")
+    prompt = subprocess.Popen(["ssh-add", "-l"], stdout=subprocess.PIPE).communicate()[0].split()[-2].split("/")[-1].split(".")[0]
+    prompt += "> "
+    try:
+        readline.read_history_file(history_path)
+    except IOError:
+        pass
     try:
         while True:
-            command = raw_input("> ")
+            command = None
+            enter = True
+            try:
+                command = raw_input(prompt)
+            except KeyboardInterrupt:
+                None
+                print("")
             first = True
             for p in window.panes:
                 if first:
                     first = False
                 else:
-                    p.send_keys(command)
+                    if command == None:
+                        p.cmd("send-keys", "^C")
+                    else:
+                        p.send_keys(command)
     except EOFError, e:
+        readline.write_history_file(history_path)
         window.kill_window()
 
 def setup_window(args):
     session = get_tmux_session()
-    tmux_window_name = get_free_window_name(session)
-    window = session.new_window(window_name = tmux_window_name)
+    window = session.new_window()
     pane_base_index = int(window.show_window_option('pane-base-index', g=True))
     first_pane = window.attached_pane()
     panes = []
@@ -48,14 +54,14 @@ def setup_window(args):
     # we could also use "main-horizontal" layout
     window.select_layout("tiled")
     time.sleep(1)
-    first_pane.send_keys(args[0] + " commander " + tmux_window_name)
+    first_pane.send_keys(args[0] + " commander")
     i = 0
     for p in panes:
         p.send_keys("ssh " + servers[i]) 
         i += 1
     first_pane.select_pane()
 
-if len(sys.argv) >= 2 and sys.argv[1] == "commander":
-    start_main_shell(sys.argv[2])
+if len(sys.argv) >= 1 and sys.argv[1] == "commander":
+    start_main_shell()
 else:
     setup_window(sys.argv)
