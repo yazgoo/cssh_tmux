@@ -19,7 +19,6 @@ def start_main_shell():
             try:
                 command = raw_input(prompt)
             except KeyboardInterrupt:
-                None
                 print("")
             first = True
             for p in window.panes:
