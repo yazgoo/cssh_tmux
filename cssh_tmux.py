@@ -16,8 +16,6 @@ def start_main_shell():
         pass
     try:
         while True:
-            command = None
-            enter = True
             try:
                 command = raw_input(prompt)
             except KeyboardInterrupt:
