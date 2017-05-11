@@ -6,7 +6,7 @@ An SSH multiplexer based on tmux (like csshx).
 
 Click to watch the demo:
 
-[![Watch the video](https://img.youtube.com/vi/1RUzW5CrIXk/0.jpg)](https://www.youtube.com/watch?v=1RUzW5CrIXk)
+[![Watch the video](https://github.com/yazgoo/cssh_tmux/blob/master/cssh_tmux.gif?raw=true)](https://www.youtube.com/watch?v=1RUzW5CrIXk)
 
 ## Usage
 
